@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Apps - Cerberus{% endblock %}
+{% block content %}
+<h2>Apps</h2>
+{% if not apps %}
+<p style="color: #94a3b8">No apps have been added yet.{% if user.is_admin %} Add some from the <a href="/admin">admin panel</a>.{% endif %}</p>
+{% else %}
+<div class="apps-grid">
+  {% for app in apps %}
+  <a class="app-tile" href="{{ app.url }}">
+    {% if app.icon_url %}
+    <img src="{{ app.icon_url }}" alt="{{ app.name }}" />
+    {% else %}
+    <div class="letter-avatar">{{ app.name[:1]|upper }}</div>
+    {% endif %}
+    <div>{{ app.name }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

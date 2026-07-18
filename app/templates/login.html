@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Sign in - Cerberus{% endblock %}
+{% block content %}
+<div class="center">
+  <div class="card">
+    <h2 style="margin-top: 0">🐕 Cerberus Gate</h2>
+    <p style="color: #94a3b8">Sign in with your passkey.</p>
+    <button id="login-btn" type="button">Sign in with passkey</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+<script src="/static/webauthn.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const requestedRd = params.get("rd");
+  const rd = isSafeRedirectPath(requestedRd) ? requestedRd : "/";
+  const statusEl = document.getElementById("status");
+
+  document.getElementById("login-btn").addEventListener("click", async () => {
+    statusEl.classList.remove("error");
+    statusEl.textContent = "Waiting for your passkey…";
+    try {
+      await loginWithPasskey();
+      window.location = rd;
+    } catch (err) {
+      statusEl.classList.add("error");
+      statusEl.textContent = err.message || "Login failed";
+    }
+  });
+</script>
+{% endblock %}

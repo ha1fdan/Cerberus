@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Profile - Cerberus{% endblock %}
+{% block content %}
+<h2>Your profile</h2>
+<div class="wide-card">
+  <p><strong>Username:</strong> {{ user.username }}</p>
+  <p><strong>Display name:</strong> {{ user.display_name }}</p>
+</div>
+
+<div class="wide-card">
+  <h3 style="margin-top: 0">Passkeys</h3>
+  <table>
+    <thead>
+      <tr><th>Nickname</th><th>Added</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for key in passkeys %}
+      <tr>
+        <td>{{ key.nickname or "Unnamed passkey" }}</td>
+        <td>{{ key.created_at | int | timestamp_to_date }}</td>
+        <td style="text-align: right">
+          <button class="danger" type="button" onclick="deletePasskey({{ key.id }})">Delete</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top: 1.5rem">
+    <label>Nickname for new passkey (optional)</label>
+    <input type="text" id="nickname" placeholder="e.g. Work laptop" />
+    <button id="add-btn" type="button">Add a passkey</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script src="/static/webauthn.js"></script>
+<script>
+  const statusEl = document.getElementById("status");
+
+  document.getElementById("add-btn").addEventListener("click", async () => {
+    statusEl.classList.remove("error");
+    statusEl.textContent = "Waiting for your authenticator…";
+    const nickname = document.getElementById("nickname").value;
+    try {
+      await registerPasskey("/profile/passkeys/begin", "/profile/passkeys/complete", nickname);
+      window.location.reload();
+    } catch (err) {
+      statusEl.classList.add("error");
+      statusEl.textContent = err.message || "Passkey creation failed";
+    }
+  });
+
+  async function deletePasskey(id) {
+    if (!confirm("Delete this passkey?")) return;
+    const res = await fetch(`/profile/passkeys/${id}/delete`, { method: "POST" });
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      const detail = await res.json().catch(() => ({}));
+      alert(detail.detail || "Could not delete passkey");
+    }
+  }
+</script>
+{% endblock %}

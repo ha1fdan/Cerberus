@@ -1,0 +1,18 @@
+services:
+  cerberus:
+    build: .
+    container_name: cerberus-sso
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8010:5000" # Binds locally so Nginx is the only public gate
+    environment:
+      - JWT_SECRET=CHANGE_ME # generate with: openssl rand -hex 32
+      - ALGORITHM=HS256
+      - RP_ID=example.com
+      - ORIGIN=https://auth.example.com
+      - COOKIE_DOMAIN=.example.com
+    volumes:
+      - cerberus-data:/app/app/data
+
+volumes:
+  cerberus-data:

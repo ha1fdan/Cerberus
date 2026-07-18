@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Set up your passkey - Cerberus{% endblock %}
+{% block content %}
+<div class="center">
+  <div class="card">
+    <h2 style="margin-top: 0">🐕 Welcome, {{ username }}</h2>
+    <p style="color: #94a3b8">Create a passkey to finish setting up your account.</p>
+    <label>Passkey nickname (optional)</label>
+    <input type="text" id="nickname" placeholder="e.g. iPhone, YubiKey" />
+    <button id="register-btn" type="button">Create passkey</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+<script src="/static/webauthn.js"></script>
+<script>
+  const statusEl = document.getElementById("status");
+
+  document.getElementById("register-btn").addEventListener("click", async () => {
+    statusEl.classList.remove("error");
+    statusEl.textContent = "Waiting for your authenticator…";
+    const nickname = document.getElementById("nickname").value;
+    try {
+      await registerPasskey(
+        "/register/{{ token }}/begin",
+        "/register/{{ token }}/complete",
+        nickname
+      );
+      window.location = "/";
+    } catch (err) {
+      statusEl.classList.add("error");
+      statusEl.textContent = err.message || "Passkey creation failed";
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Admin - Cerberus{% endblock %}
+{% block content %}
+<h2>Admin</h2>
+
+{% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+{% if invite_link %}
+<div class="flash">
+  Enrollment link for <strong>{{ invite_username }}</strong> (valid for 1 hour, single use):<br />
+  <a href="{{ invite_link }}">{{ invite_link }}</a>
+</div>
+{% endif %}
+
+<div class="wide-card">
+  <h3 style="margin-top: 0">Users</h3>
+  <table>
+    <thead>
+      <tr><th>Username</th><th>Display name</th><th>Role</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.display_name }}</td>
+        <td>{{ "Admin" if u.is_admin else "User" }}</td>
+        <td style="text-align: right; white-space: nowrap">
+          <form class="inline" method="post" action="/admin/users/{{ u.id }}/reset-passkeys">
+            <button class="ghost" type="submit">Reset passkeys</button>
+          </form>
+          {% if u.id != user.id %}
+          <form class="inline confirm-delete" method="post" action="/admin/users/{{ u.id }}/delete" data-confirm="Delete {{ u.username }}?">
+            <button class="danger" type="submit">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h4>Invite a new user</h4>
+  <form method="post" action="/admin/users/invite">
+    <label>Username</label>
+    <input type="text" name="username" required />
+    <label>Display name (optional)</label>
+    <input type="text" name="display_name" />
+    <label><input type="checkbox" name="is_admin" value="1" style="width: auto" /> Grant admin access</label>
+    <button type="submit">Create invite</button>
+  </form>
+</div>
+
+<div class="wide-card">
+  <h3 style="margin-top: 0">Apps overview</h3>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>URL</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for app in apps %}
+      <tr>
+        <td>{{ app.name }}</td>
+        <td><a href="{{ app.url }}">{{ app.url }}</a></td>
+        <td style="text-align: right">
+          <form class="inline confirm-delete" method="post" action="/admin/apps/{{ app.id }}/delete" data-confirm="Remove {{ app.name }}?">
+            <button class="danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h4>Add an app</h4>
+  <form method="post" action="/admin/apps/add">
+    <label>Name</label>
+    <input type="text" name="name" required />
+    <label>URL</label>
+    <input type="text" name="url" placeholder="https://app.example.com" required />
+    <label>Icon URL (optional)</label>
+    <input type="text" name="icon_url" placeholder="https://.../icon.png" />
+    <button type="submit">Add app</button>
+  </form>
+</div>
+
+<script>
+  document.querySelectorAll("form.confirm-delete").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      if (!confirm(form.dataset.confirm)) {
+        event.preventDefault();
+      }
+    });
+  });
+</script>
+{% endblock %}
